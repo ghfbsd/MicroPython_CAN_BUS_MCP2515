@@ -1,5 +1,3 @@
-from tests import fake_micropython  # for testing only
-
 """
 Following SPI drivers are supported, please adjust by your hardware
 from .src import SPIESP8286 as SPI
@@ -26,7 +24,7 @@ from src import (
     CAN_SPEED,
     ERROR,
 )
-from src import SPIESP32 as SPI
+from src import SPIPICO as SPI
 from src import CANFrame
 
 
