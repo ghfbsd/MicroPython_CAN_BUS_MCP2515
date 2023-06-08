@@ -32,7 +32,7 @@ from src import CANFrame
 
 def main() -> None:
     # Initialization
-    can = CAN(SPI(cs=23))
+    can = CAN(SPI(cs=9))
 
     # Configuration
     if can.reset() != ERROR.ERROR_OK:
