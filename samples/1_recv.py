@@ -23,10 +23,10 @@ while True:
         error, msg = can.recv()
         if error == CanError.ERROR_OK:
             print('------------------------------')
-            print("can id:", msg.can_id)
+            print("can id: %#x" % msg.can_id)
             print("is rtr frame:", msg.is_remote_frame)
             print("is eff frame:", msg.is_extended_id)
-            print("can data:", msg.data)
+            print("can data hex:", msg.data.hex())
             print("can data dlc:", msg.dlc)
     else:
         time.sleep(0.1)

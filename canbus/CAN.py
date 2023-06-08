@@ -27,14 +27,14 @@ class CanMsg:
             self.frame = CANFrame(can_id, data)
         self.is_remote_frame = self.frame.is_remote_frame
         self.is_extended_id = self.frame.is_extended_id
-        self.can_id = self.frame.can_id
+        self.can_id = self.frame.arbitration_id
         self.data = self.frame.data
         self.dlc = self.frame.dlc
     def _set_frame(self, frame):
         self.frame = frame
         self.is_remote_frame = self.frame.is_remote_frame
         self.is_extended_id = self.frame.is_extended_id
-        self.can_id = self.frame.can_id
+        self.can_id = self.frame.arbitration_id
         self.data = self.frame.data
         self.dlc = self.frame.dlc
     def _get_frame(self):
