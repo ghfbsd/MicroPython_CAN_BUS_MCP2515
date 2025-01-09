@@ -53,6 +53,20 @@ class CAN_1:
             return ret
         ret = self.can.setNormalMode()
         return ret
+    def setLoopback(self):
+        return self.can.setLoopbackMode()
+    def clearInterrupts(self):
+        self.can.clearInterrupts()
+    def getInterrupts(self):
+        return self.can.getInterrupts()
+    def getInterruptMask(self):
+        return self.can.getInterruptMask()
+    def getErrorFlags(self):
+        return self.can.getErrorFlags()
+    def clearErrorFlags(self,RXERR=False):
+        # Keyword args for clearing more conditions in future if required, e.g.
+        # TXBO, passive errors, warnings
+        if RXERR: self.can.clearRXnOVRFlags()
     def init_mask(self, mask, is_ext_id, mask_id):
         ret = self.can.setFilterMask(mask + 1, is_ext_id, mask_id)
         if ret != ERROR.ERROR_OK:
