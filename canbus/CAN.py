@@ -70,7 +70,7 @@ class CAN_1:
     def recv(self):
         error, frame = self.can.readMessage()
         msg = CanMsg()
-        msg._set_frame(frame)
+        if msg is not None: msg._set_frame(frame)
         return error, msg
     def send(self, msg):
         frame = msg._get_frame()
