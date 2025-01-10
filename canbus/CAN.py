@@ -67,6 +67,8 @@ class CAN_1:
         # Keyword args for clearing more conditions in future if required, e.g.
         # TXBO, passive errors, warnings
         if RXERR: self.can.clearRXnOVRFlags()
+    def getStatus(self):
+        return self.can.getStatus()
     def init_mask(self, mask, is_ext_id, mask_id):
         ret = self.can.setFilterMask(mask + 1, is_ext_id, mask_id)
         if ret != ERROR.ERROR_OK:
