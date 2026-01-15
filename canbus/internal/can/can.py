@@ -31,8 +31,14 @@ class CANFrame:
         #
         # 32 bit CAN ID + EFF/RTR/ERR flags
         #
-        self.can_id = can_id  # type: int
-        self.data = data  # type: bytes
+        self._can_id = can_id  # type: int
+        self._arbitration_id = can_id & CAN_EFF_MASK  # type: int
+        self._data = bytearray(CAN_MAX_DLEN)  # type: bytes
+        if data is not None:
+           self._dlc = len(data)
+           self._data[0:len(data)] = data
+        else:
+           self._dlc = 0
 
     @property
     def can_id(self) -> int:
@@ -49,17 +55,15 @@ class CANFrame:
 
     @data.setter
     def data(self, data: bytes) -> None:
-        self._data = b""  # type: bytes
-        self._dlc = 0  # frame payload length in byte (0 .. CAN_MAX_DLEN)
-
         if not data:
+            self._dlc = 0  # frame payload length in byte (0 .. CAN_MAX_DLEN)
             return
 
         if len(data) > CAN_MAX_DLEN:
             raise Exception("The CAN frame data length exceeds the maximum")
 
-        self._data = data
         self._dlc = len(data)
+        self._data[0:len(data)] = data[0:len(data)]
 
     @property
     def arbitration_id(self) -> int:
@@ -85,6 +89,6 @@ class CANFrame:
         data = (
             "remote request"
             if self.is_remote_frame
-            else " ".join("{:02X}".format(b) for b in self.data)
+            else " ".join("{:02X}".format(b) for b in self._data[0:self._dlc])
         )
-        return "{: >8X}   [{}]  {}".format(self.arbitration_id, self.dlc, data)
+        return "{:08X}   [{}]  {}".format(self.arbitration_id, self._dlc, data)

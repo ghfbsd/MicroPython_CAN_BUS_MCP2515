@@ -167,17 +167,16 @@ class CAN:
 
         return ret
 
-    def readRegisters(self, reg: int, n: int) -> List[int]:
+    def readRegisters(self, reg: int, n: int, buf: bytearray = bytearray(CAN_MAX_DLEN)) -> bytearray:
         self.SPI.start()
         self.SPI.transfer(INSTRUCTION.INSTRUCTION_READ)
         self.SPI.transfer(reg)
         # MCP2515 has auto-increment of address-pointer
-        values = []
         for i in range(n):
-            values.append(self.SPI.transfer(read=True))
+            buf[i] = self.SPI.transfer(read=True)
         self.SPI.end()
 
-        return values
+        return buf
 
     def setRegister(self, reg: int, value: int) -> None:
         self.SPI.start()
@@ -392,9 +391,40 @@ class CAN:
 
         return ERROR.ERROR_ALLTXBUSY
 
+    def readMessageInto(self, frame: Any, rxbn: int = None) -> int:
+        if rxbn is None:
+            return self.readMessageInto_(frame)
+
+        rxb = RXB[rxbn]
+
+        tbufdata = self.readRegisters(rxb.SIDH, 1 + CAN_IDLEN)
+
+        id_ = (tbufdata[MCP_SIDH] << 3) + (tbufdata[MCP_SIDL] >> 5)
+
+        if (tbufdata[MCP_SIDL] & TXB_EXIDE_MASK) == TXB_EXIDE_MASK:
+            id_ = (id_ << 2) + (tbufdata[MCP_SIDL] & 0x03)
+            id_ = (id_ << 8) + tbufdata[MCP_EID8]
+            id_ = (id_ << 8) + tbufdata[MCP_EID0]
+            id_ |= CAN_EFF_FLAG
+
+        dlc = tbufdata[MCP_DLC] & DLC_MASK
+        if dlc > CAN_MAX_DLEN:
+            return ERROR.ERROR_FAIL
+
+        ctrl = self.readRegister(rxb.CTRL)
+        if ctrl & RXBnCTRL_RTR:
+            id_ |= CAN_RTR_FLAG
+
+        frame.can_id = id_
+
+        frame.data = self.readRegisters(rxb.DATA, dlc)[0:dlc]
+
+        return ERROR.ERROR_OK
+
     def readMessage(self, rxbn: int = None) -> Tuple[int, Any]:
         if rxbn is None:
-            return self.readMessage_()
+            frame = CANFrame(0)
+            return self.readMessageInto_(frame), frame
 
         rxb = RXB[rxbn]
 
@@ -416,23 +446,23 @@ class CAN:
         if ctrl & RXBnCTRL_RTR:
             id_ |= CAN_RTR_FLAG
 
-        frame = CANFrame(can_id=id_)
+        frame = CANFrame(id_)
 
-        frame.data = bytearray(self.readRegisters(rxb.DATA, dlc))
+        frame.data = copy.copy(self.readRegisters(rxb.DATA, dlc)[0:dlc])
 
         return ERROR.ERROR_OK, frame
 
-    def readMessage_(self) -> Tuple[int, Any]:
-        rc = ERROR.ERROR_NOMSG, None
+    def readMessageInto_(self, frame: Any) -> int:
+        rc = ERROR.ERROR_NOMSG
 
         stat = self.getStatus()
         if stat & STAT.STAT_RX0IF and self.mcp2515_rx_index == 0:
-            rc = self.readMessage(RXBn.RXB0)
+            rc = self.readMessageInto(frame,RXBn.RXB0)
             if self.getStatus() & STAT.STAT_RX1IF:
                 self.mcp2515_rx_index = 1
             self.modifyRegister(REGISTER.MCP_CANINTF, RXB[RXBn.RXB0].CANINTFRXnIF, 0)
         elif stat & STAT.STAT_RX1IF:
-            rc = self.readMessage(RXBn.RXB1)
+            rc = self.readMessageInto(frame,RXBn.RXB1)
             self.mcp2515_rx_index = 0
             self.modifyRegister(REGISTER.MCP_CANINTF, RXB[RXBn.RXB1].CANINTFRXnIF, 0)
 

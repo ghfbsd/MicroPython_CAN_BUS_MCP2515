@@ -157,6 +157,11 @@ class CAN_1:
         msg = CanMsg()
         if frame is not None: msg._set_frame(frame)
         return error, msg
+    def recvinto(self,msg):
+        frame = msg._get_frame()
+        error = self.can.readMessageInto(frame)
+        msg._set_frame(frame)
+        return error
     def send(self, msg):
         frame = msg._get_frame()
         error = self.can.sendMessage(frame)

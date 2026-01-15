@@ -1,11 +1,13 @@
 # MicroPython CAN Bus Library
 
 MicroPython library for MCP2515, it works for most of the MicroPython boards.
+This version of the library is extended to optimize for speed and to use
+static memory as much as possible for reliable use in IRQs.
 
 With this library, you can,
 
 - Send a CAN 2.0 frame
-- Receive a CAN 2.0 frame
+- Receive a CAN 2.0 frame (as a new buffer or into a pre-allocated buffer)
 - Get data from OBD-II
 - Set the masks and filters, there're 32 masks and filters.
 
