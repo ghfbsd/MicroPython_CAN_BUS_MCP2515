@@ -9,7 +9,8 @@ With this library, you can,
 - Send a CAN 2.0 frame
 - Receive a CAN 2.0 frame (as a new buffer or into a pre-allocated buffer)
 - Get data from OBD-II
-- Set the masks and filters, there're 32 masks and filters.
+- Set the masks and filters, there're 32 masks and filters
+- Decode various error registers into human-readable form.
 
 ## Getting Started
 

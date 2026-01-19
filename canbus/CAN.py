@@ -23,9 +23,10 @@ class CanError:
     #       {status_reg_flags} {error_reg_flags}
     #    e.g. for 1 keyword (interrupt=):
     #       {interrupt_reg_flags}
+    # txctl: TXBnCTRL
 
     @classmethod
-    def decode(cls,status=None,interrupt=None,error=None):
+    def decode(cls,status=None,interrupt=None,error=None,txctl=None):
 
        def cat(txt):
           nonlocal pfx
@@ -52,6 +53,19 @@ class CanError:
           if bits == 0x0e: res += cat('RXB1-interrupt')
           res += '}'
           nxt = ' '
+
+       if txctl is not None:
+          res += nxt + '{'
+          pfx = ''
+          if txctl & 0x80: res += cat('<unknown>')
+          if txctl & 0x40: res += cat('Msg-abort')
+          if txctl & 0x20: res += cat('Msg-lostarb')
+          if txctl & 0x10: res += cat('Msg-xmt-error')
+          if txctl & 0x08: res += cat('Msg-xmt-req')
+          if txctl & 0x04: res += cat('<unknown>')
+          if txctl & 0x02: res += cat('Msg-prio1')
+          if txctl & 0x01: res += cat('Msg-prio0')
+          res += '}'
 
        if interrupt is not None:
           res += nxt + '{'
